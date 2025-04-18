@@ -1,0 +1,11 @@
+From node:18
+
+WORKDIR /payment-services
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+EXPOSE 3003
+
+CMD [ "node" , "index.js" ]
