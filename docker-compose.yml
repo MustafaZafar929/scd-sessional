@@ -1,0 +1,66 @@
+
+services:
+  # MongoDB Service
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - net1
+      - default
+
+  # Backend Service (Node.js/Express)
+  server:
+    build: 
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: server
+    restart: always
+    environment:
+      MONGO_URI: mongodb://mongo:27017/notesdb
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+    networks:
+      - net1
+      - default
+
+  # Frontend Service (React)
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_BASE_URL: ${REACT_APP_BASE_URL}
+    container_name: frontend
+    restart: always
+    environment:
+      REACT_APP_BASE_URL: http://localhost:3000
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - net2
+      - default
+ 
+
+volumes:
+  mongo-data:
+
+networks:
+  net1:
+    external: false
+    ipam:
+      config:
+        - subnet: 192.168.100.0/24
+  net2:
+    external: false
+    ipam:
+      config:
+        - subnet: 192.168.200.0/24
